@@ -1,0 +1,21 @@
+# Install requirements-torch.txt first (see README).
+# Later phases add terratorch (Phase 4) and gradio or streamlit (Phase 5).
+
+# Config and arrays
+pyyaml==6.0.3
+numpy==2.4.6
+
+# Geospatial
+rasterio==1.4.4
+earthengine-api==1.7.50
+geemap==0.37.2
+
+# Models
+segmentation-models-pytorch==0.6.0
+
+# Plots and notebooks
+matplotlib==3.11.2
+jupyter==1.1.1
+
+# Tests
+pytest==9.2.0

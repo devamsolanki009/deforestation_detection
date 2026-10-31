@@ -1,0 +1,5 @@
+# CUDA build of PyTorch. Install this BEFORE requirements.txt: otherwise
+# segmentation-models-pytorch pulls in the CPU-only build from PyPI on Windows.
+--index-url https://download.pytorch.org/whl/cu130
+torch==2.14.1
+torchvision==0.29.1

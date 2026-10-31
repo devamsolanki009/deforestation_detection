@@ -1,0 +1,26 @@
+# Project configuration. Relative paths resolve against the repo root.
+# Copy this file to try another region or year pair, then pass it with --config.
+
+region:
+  # Provisional default: Sao Felix do Xingu, Para, Brazil. Confirm in Phase 1.
+  name: sao_felix_do_xingu
+  # Degrees, WGS84 (EPSG:4326).
+  bbox:
+    west: -52.5
+    south: -7.0
+    east: -51.5
+    north: -6.0
+
+years:
+  # Provisional defaults. Confirm in Phase 1.
+  before: 2020
+  after: 2022
+
+patch:
+  size: 256    # pixels per side; must be divisible by 32 for U-Net style encoders
+  stride: 256  # equal to size means no overlap between patches
+
+paths:
+  raw_dir: data/raw          # GeoTIFF tiles exported from Earth Engine
+  patches_dir: data/patches  # model-ready patches and their metadata
+  outputs_dir: outputs       # checkpoints, metrics, figures

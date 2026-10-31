@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environment
+.venv/
+.env
+
+# Large generated artifacts
+/data/
+/outputs/
+*.tif
+*.tiff
+*.npy
+*.pt
+*.pth
