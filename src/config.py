@@ -20,6 +20,12 @@ class ConfigError(ValueError):
 
 
 @dataclass(frozen=True)
+class EarthEngine:
+    project: str
+    hansen_asset: str
+
+
+@dataclass(frozen=True)
 class BBox:
     west: float
     south: float
@@ -40,6 +46,12 @@ class Years:
 
 
 @dataclass(frozen=True)
+class Season:
+    start_month: int
+    end_month: int
+
+
+@dataclass(frozen=True)
 class Patch:
     size: int
     stride: int
@@ -54,8 +66,10 @@ class Paths:
 
 @dataclass(frozen=True)
 class Config:
+    earth_engine: EarthEngine
     region: Region
     years: Years
+    season: Season
     patch: Patch
     paths: Paths
 
@@ -80,6 +94,10 @@ def _validate(config: Config) -> None:
 
     if config.years.before >= config.years.after:
         raise ConfigError(f"years.before must be earlier than years.after, got {config.years}")
+
+    season = config.season
+    if not 1 <= season.start_month <= season.end_month <= 12:
+        raise ConfigError(f"season needs 1 <= start_month <= end_month <= 12, got {season}")
 
     size, stride = config.patch.size, config.patch.stride
     if size <= 0 or size % PATCH_SIZE_MULTIPLE != 0:
@@ -110,8 +128,10 @@ def load_config(path: str | Path = DEFAULT_CONFIG) -> Config:
     )
 
     config = Config(
+        earth_engine=_build(EarthEngine, raw.get("earth_engine"), "earth_engine"),
         region=_build(Region, region_raw, "region"),
         years=_build(Years, raw.get("years"), "years"),
+        season=_build(Season, raw.get("season"), "season"),
         patch=_build(Patch, raw.get("patch"), "patch"),
         paths=resolved_paths,
     )

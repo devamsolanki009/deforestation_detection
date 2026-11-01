@@ -63,6 +63,9 @@ def test_misspelled_key_is_reported(tmp_path):
     [
         edited("years", "before", 2022),  # same year as after
         edited("years", "before", 2024),  # later than after
+        edited("season", "start_month", 0),
+        edited("season", "end_month", 13),
+        edited("season", "start_month", 10),  # after end_month
         edited("patch", "size", 250),     # not divisible by 32
         edited("patch", "size", 0),
         edited("patch", "stride", 0),
