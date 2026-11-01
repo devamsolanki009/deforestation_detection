@@ -2,8 +2,9 @@
 
 Areas:
     probe   a small square in the subset, to measure real EECU usage and validate bands
-    subset  the test area from the config
-    full    the whole region
+    subset  the test area from the config, which is also the NE quarter
+    nw, sw, se  the other quarters of the region
+    full    the whole region in one task
 
 Run from the repo root:
     python -m scripts.export_stack --area probe --local   small direct download for checking
@@ -32,6 +33,7 @@ PROBE_RADIUS_M = 2560  # gives a 5.12 km square
 LOCAL_RADIUS_M = 1280  # direct downloads are limited in size
 POLL_SECONDS = 20
 BLOCKING_STATES = {"READY", "RUNNING", "COMPLETED"}
+QUARTER_AREAS = ("nw", "sw", "se")  # the subset already covers the NE quarter
 
 
 def area_geometry(config: Config, area: str, radius_m: int) -> ee.Geometry:
@@ -39,6 +41,8 @@ def area_geometry(config: Config, area: str, radius_m: int) -> ee.Geometry:
         return gee.bbox_geometry(config.region.bbox)
     if area == "subset":
         return gee.bbox_geometry(config.subset.bbox)
+    if area in QUARTER_AREAS:
+        return gee.bbox_geometry(gee.quarters(config.region.bbox)[area.upper()])
     box = config.subset.bbox
     center = ee.Geometry.Point([(box.west + box.east) / 2, (box.south + box.north) / 2])
     return center.buffer(radius_m).bounds()
@@ -94,7 +98,7 @@ def wait_for(task: ee.batch.Task) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    parser.add_argument("--area", choices=["probe", "subset", "full"], required=True)
+    parser.add_argument("--area", choices=["probe", "subset", *QUARTER_AREAS, "full"], required=True)
     parser.add_argument("--local", action="store_true", help="direct download; probe area only")
     parser.add_argument("--confirm", action="store_true", help="required for subset and full")
     parser.add_argument("--force", action="store_true", help="run even if a matching task exists")

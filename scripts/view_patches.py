@@ -22,6 +22,7 @@ from matplotlib.colors import ListedColormap  # noqa: E402
 
 from src.config import DEFAULT_CONFIG, load_config  # noqa: E402
 from src.data.labels import IGNORE, LOSS  # noqa: E402
+from src.data.patches import source_prefixes  # noqa: E402
 
 LOSS_SAMPLES = 4
 PLAIN_SAMPLES = 2
@@ -56,7 +57,7 @@ def main() -> int:
     with (patch_dir / "metadata.csv").open(encoding="utf-8") as handle:
         records = [r for r in csv.DictReader(handle) if r["split"] != "buffer"]
 
-    prefix = f"stack_{config.region.name}_{args.area}_{before}_{after}"
+    prefix = source_prefixes(config, args.area)[0]
     manifest = json.loads((config.paths.raw_dir / f"{prefix}.manifest.json").read_text(encoding="utf-8"))
     names = [b for b in manifest["bands"] if not b.startswith(("s2_clear_count", "lossyear", "treecover2000"))]
 
@@ -83,7 +84,7 @@ def main() -> int:
                 axis.set_title(titles[column], fontsize=10)
 
     figure.suptitle("Label: red = loss, gray = ignored, black = no loss", fontsize=10)
-    figure.tight_layout()
+    figure.tight_layout(rect=(0, 0, 1, 0.99))
     output = config.paths.outputs_dir / "phase1" / f"samples_{args.area}.png"
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output, dpi=130)
