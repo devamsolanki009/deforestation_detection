@@ -14,6 +14,15 @@ region:
     east: -51.5
     north: -6.0
 
+# Test area for the pipeline: the quarter of the region with the most 2021 loss.
+subset:
+  name: ne_quarter
+  bbox:
+    west: -52.0
+    south: -6.5
+    east: -51.5
+    north: -6.0
+
 years:
   before: 2020
   after: 2022
@@ -23,9 +32,30 @@ season:
   start_month: 6
   end_month: 9
 
+composite:
+  # Skips the cloudiest scenes before masking, which saves Earth Engine compute.
+  s2_max_cloud_percent: 60
+
+export:
+  crs: EPSG:32722        # UTM 22S, so pixels have true metric area for hectares
+  scale_m: 10
+  drive_folder: deforestation_phase1
+  file_dimensions: 2560  # pixels per output file side
+
+labels:
+  forest_min_treecover: 50  # percent tree cover in 2000 that counts as forest
+
 patch:
   size: 256    # pixels per side; must be divisible by 32 for U-Net style encoders
   stride: 256  # equal to size means no overlap between patches
+  max_nodata_fraction: 0.05  # patches with more missing imagery are skipped
+
+# North-to-south stripes, cut so each split holds this share of the loss pixels.
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  buffer_m: 2560  # minimum gap between splits, so neighbouring pixels cannot leak
 
 paths:
   raw_dir: data/raw          # GeoTIFF tiles exported from Earth Engine

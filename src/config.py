@@ -52,9 +52,36 @@ class Season:
 
 
 @dataclass(frozen=True)
+class Composite:
+    s2_max_cloud_percent: float
+
+
+@dataclass(frozen=True)
+class Export:
+    crs: str
+    scale_m: int
+    drive_folder: str
+    file_dimensions: int
+
+
+@dataclass(frozen=True)
+class Labels:
+    forest_min_treecover: int
+
+
+@dataclass(frozen=True)
 class Patch:
     size: int
     stride: int
+    max_nodata_fraction: float
+
+
+@dataclass(frozen=True)
+class Split:
+    train: float
+    val: float
+    test: float
+    buffer_m: int
 
 
 @dataclass(frozen=True)
@@ -68,9 +95,14 @@ class Paths:
 class Config:
     earth_engine: EarthEngine
     region: Region
+    subset: Region
     years: Years
     season: Season
+    composite: Composite
+    export: Export
+    labels: Labels
     patch: Patch
+    split: Split
     paths: Paths
 
 
@@ -86,11 +118,16 @@ def _build(cls: type, raw: Any, section: str) -> Any:
 
 
 def _validate(config: Config) -> None:
-    box = config.region.bbox
-    if not (-180 <= box.west < box.east <= 180):
-        raise ConfigError(f"bbox needs -180 <= west < east <= 180, got {box}")
-    if not (-90 <= box.south < box.north <= 90):
-        raise ConfigError(f"bbox needs -90 <= south < north <= 90, got {box}")
+    for box in (config.region.bbox, config.subset.bbox):
+        if not (-180 <= box.west < box.east <= 180):
+            raise ConfigError(f"bbox needs -180 <= west < east <= 180, got {box}")
+        if not (-90 <= box.south < box.north <= 90):
+            raise ConfigError(f"bbox needs -90 <= south < north <= 90, got {box}")
+
+    outer, inner = config.region.bbox, config.subset.bbox
+    if not (outer.west <= inner.west and inner.east <= outer.east
+            and outer.south <= inner.south and inner.north <= outer.north):
+        raise ConfigError(f"subset bbox must lie inside the region bbox, got {inner}")
 
     if config.years.before >= config.years.after:
         raise ConfigError(f"years.before must be earlier than years.after, got {config.years}")
@@ -104,6 +141,17 @@ def _validate(config: Config) -> None:
         raise ConfigError(f"patch.size must be a positive multiple of {PATCH_SIZE_MULTIPLE}, got {size}")
     if not 0 < stride <= size:
         raise ConfigError(f"patch.stride must be between 1 and patch.size, got {stride}")
+    if not 0 <= config.patch.max_nodata_fraction <= 1:
+        raise ConfigError(f"patch.max_nodata_fraction must be between 0 and 1, got {config.patch.max_nodata_fraction}")
+
+    split = config.split
+    if min(split.train, split.val, split.test) <= 0 or abs(split.train + split.val + split.test - 1) > 1e-6:
+        raise ConfigError(f"split shares must be positive and sum to 1, got {split}")
+    if split.buffer_m < 0:
+        raise ConfigError(f"split.buffer_m must not be negative, got {split.buffer_m}")
+
+    if not 0 <= config.labels.forest_min_treecover <= 100:
+        raise ConfigError(f"labels.forest_min_treecover must be 0-100, got {config.labels.forest_min_treecover}")
 
 
 def load_config(path: str | Path = DEFAULT_CONFIG) -> Config:
@@ -119,6 +167,8 @@ def load_config(path: str | Path = DEFAULT_CONFIG) -> Config:
 
     region_raw = dict(_build(dict, raw.get("region"), "region"))
     region_raw["bbox"] = _build(BBox, region_raw.get("bbox"), "region.bbox")
+    subset_raw = dict(_build(dict, raw.get("subset"), "subset"))
+    subset_raw["bbox"] = _build(BBox, subset_raw.get("bbox"), "subset.bbox")
 
     paths = _build(Paths, raw.get("paths"), "paths")
     resolved_paths = Paths(
@@ -130,9 +180,14 @@ def load_config(path: str | Path = DEFAULT_CONFIG) -> Config:
     config = Config(
         earth_engine=_build(EarthEngine, raw.get("earth_engine"), "earth_engine"),
         region=_build(Region, region_raw, "region"),
+        subset=_build(Region, subset_raw, "subset"),
         years=_build(Years, raw.get("years"), "years"),
         season=_build(Season, raw.get("season"), "season"),
+        composite=_build(Composite, raw.get("composite"), "composite"),
+        export=_build(Export, raw.get("export"), "export"),
+        labels=_build(Labels, raw.get("labels"), "labels"),
         patch=_build(Patch, raw.get("patch"), "patch"),
+        split=_build(Split, raw.get("split"), "split"),
         paths=resolved_paths,
     )
     _validate(config)

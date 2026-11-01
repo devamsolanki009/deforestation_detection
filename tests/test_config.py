@@ -77,6 +77,13 @@ def test_invalid_values_are_rejected(tmp_path, raw):
         load_config(write_config(tmp_path, raw))
 
 
+def test_subset_outside_region_is_rejected(tmp_path):
+    raw = copy.deepcopy(VALID)
+    raw["subset"]["bbox"]["east"] = -50.0
+    with pytest.raises(ConfigError, match="inside the region"):
+        load_config(write_config(tmp_path, raw))
+
+
 @pytest.mark.parametrize(
     "bbox",
     [
