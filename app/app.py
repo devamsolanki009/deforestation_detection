@@ -151,7 +151,7 @@ def main() -> int:
     print(f"Model loaded: {detector.model_summary}", flush=True)
     # Only this machine can reach the app; outputs are saved under outputs/app.
     build_ui(detector).launch(server_name="127.0.0.1", server_port=args.port,
-                              allowed_paths=[str(app_config.outputs_dir)], share = True)
+                              allowed_paths=[str(app_config.outputs_dir)])
     return 0
 
 
