@@ -1,0 +1,24 @@
+# Settings for area inference (scripts/predict_area.py) and the demo app (app/app.py).
+
+# Trained run under outputs/runs; its evaluation picks the threshold and pipeline.
+run: siamese_unet_resnet34_seed42
+
+# Interactive Earth Engine requests use quota, so areas are capped.
+max_area_km2: 100
+fetch_tile_px: 512        # 28 Int16 bands x 512 x 512 is about 15 MB per request
+fetch_workers: 4
+cache_dir: data/app_cache
+
+inference_overlap_px: 64  # overlap between 256-pixel tiles, blended away
+min_detection_ha: 1.0     # same size filter as the evaluation
+
+# Sentinel-2 surface reflectance covers this region from 2019 dry seasons onward.
+first_year: 2019
+last_year: 2026
+# The model was trained on this gap; other gaps run but are untested.
+trained_year_gap: 2
+
+outputs_dir: outputs/app
+
+# Default demo box: inside the held-out test region, so it was never trained on.
+default_bbox: {west: -52.2814, south: -6.8133, east: -52.2350, north: -6.7668}

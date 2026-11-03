@@ -32,7 +32,8 @@ from src.data.patches import read_cell, source_prefixes
 from src.inference.mosaic import MosaicBuilder, confusion_counts, predict_loss, scores
 from src.inference.predict import load_checkpoint, predict_patches
 
-THRESHOLDS = np.round(np.arange(0.05, 0.951, 0.05), 2)
+# Finer steps at the low end: with the forest mask, the best threshold can sit below 0.05.
+THRESHOLDS = np.round(np.concatenate([np.arange(0.01, 0.05, 0.01), np.arange(0.05, 0.951, 0.05)]), 2)
 MIN_DETECTION_HA = 1.0
 SQUARE_M_PER_HA = 10_000
 PIPELINES = {"no_forest_mask": False, "forest_mask": True}

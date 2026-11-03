@@ -49,6 +49,13 @@ def load_or_compute_band_stats(patch_dir: Path, nodata: int) -> dict:
     return stats
 
 
+def normalize(raw: np.ndarray, mean: np.ndarray, std: np.ndarray, nodata: int) -> np.ndarray:
+    """Standardize each band; missing pixels become 0, the band mean."""
+    image = (raw.astype(np.float32) - mean) / std
+    image[raw == nodata] = 0
+    return image
+
+
 def augment(image: np.ndarray, label: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
     """Random 90-degree rotation and flip, applied identically to image and label.
 
@@ -78,8 +85,7 @@ class PatchDataset(Dataset):
         patch = np.load(self.patch_dir / f"{self.records[index]['patch_id']}.npz")
         raw, label = patch["image"], patch["label"]
 
-        image = (raw.astype(np.float32) - self.mean) / self.std
-        image[raw == self.nodata] = 0  # missing pixels become the band mean
+        image = normalize(raw, self.mean, self.std, self.nodata)
         if self.train:
             image, label = augment(image, label, self.rng)
 

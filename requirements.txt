@@ -1,5 +1,4 @@
 # Install requirements-torch.txt first (see README).
-# Later phases add terratorch (Phase 4) and gradio or streamlit (Phase 5).
 
 # Config and arrays
 pyyaml==6.0.3
@@ -17,6 +16,9 @@ scipy==1.17.1
 # Plots and notebooks
 matplotlib==3.11.2
 jupyter==1.1.1
+
+# Demo app (gradio pins pillow below 13)
+gradio==6.31.0
 
 # Tests
 pytest==9.2.0

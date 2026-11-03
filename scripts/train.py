@@ -16,6 +16,7 @@ import json
 import random
 import shutil
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import matplotlib
@@ -67,10 +68,13 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--train-config", type=Path, required=True)
     parser.add_argument("--timing-run", action="store_true")
+    parser.add_argument("--seed", type=int, help="overrides the config seed and adds _seed<N> to the run name")
     args = parser.parse_args()
 
     config = load_config(args.config)
     train_config = load_train_config(args.train_config)
+    if args.seed is not None:
+        train_config = replace(train_config, seed=args.seed, run_name=f"{train_config.run_name}_seed{args.seed}")
     seed_everything(train_config.seed)
     if not torch.cuda.is_available():
         print("CUDA is not available; training on CPU would be impractically slow.")
@@ -84,6 +88,7 @@ def main() -> int:
         return 1
     run_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(args.train_config, run_dir / "train_config.yaml")
+    (run_dir / "seed.txt").write_text(str(train_config.seed), encoding="utf-8")
 
     patch_dir = config.paths.patches_dir / train_config.area
     stats = load_or_compute_band_stats(patch_dir, NODATA)
@@ -147,7 +152,9 @@ def main() -> int:
             print(f"Stopping early: val F1 has not improved for {stale_epochs} epochs.")
             break
 
-    summary = {"best_val_f1": best_f1, "epochs_run": len(history),
+    summary = {"best_val_f1": best_f1, "epochs_run": len(history), "seed": train_config.seed,
+               "parameters": sum(p.numel() for p in model.parameters()),
+               "mean_epoch_seconds": sum(row["epoch_seconds"] for row in history[1:]) / max(1, len(history) - 1),
                "peak_vram_gib": torch.cuda.max_memory_allocated() / 1024**3}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))

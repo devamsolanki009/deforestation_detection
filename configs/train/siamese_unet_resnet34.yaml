@@ -1,0 +1,30 @@
+# Phase 4: Siamese U-Net. Everything except the model matches unet_resnet34.yaml,
+# so the two can be compared fairly.
+
+run_name: siamese_unet_resnet34
+area: full
+
+model:
+  arch: siamese_unet
+  encoder: resnet34
+  encoder_weights: imagenet
+
+data:
+  batch_size: 8
+  num_workers: 4
+  oversample_min_loss_fraction: 0.01
+  oversample_weight: 2.5
+
+optim:
+  epochs: 40
+  lr: 0.0003
+  weight_decay: 0.0001
+  early_stopping_patience: 10
+
+loss:
+  dice_weight: 1.0
+  focal_weight: 1.0
+
+amp: true
+threshold: 0.5
+seed: 42
