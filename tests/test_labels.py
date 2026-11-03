@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.data.labels import IGNORE, LOSS, NO_LOSS, derive_label
+from src.data.labels import IGNORE, LOSS, NO_LOSS, derive_label, forest_at_start
 
 NODATA = -32768
 
@@ -33,6 +33,14 @@ def label_for(lossyear: int, treecover: int) -> int:
 )
 def test_label_rules(lossyear, treecover, expected):
     assert label_for(lossyear, treecover) == expected
+
+
+def test_forest_at_start():
+    lossyear = np.array([[0, 19, 20, 21, 25, 0, NODATA]], dtype=np.int16)
+    treecover = np.array([[90, 90, 90, 90, 90, 40, 90]], dtype=np.int16)
+    forest = forest_at_start(lossyear, treecover, before=2020, min_cover=50, nodata=NODATA)
+    # Lost in 2019 means already gone; 40% cover is not forest; missing data is not forest.
+    assert forest.tolist() == [[True, False, True, True, True, False, False]]
 
 
 def test_wider_year_gap_keeps_all_middle_years():

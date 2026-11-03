@@ -10,8 +10,9 @@ rasterio==1.4.4
 earthengine-api==1.7.50
 geemap==0.37.2
 
-# Models
+# Models and post-processing
 segmentation-models-pytorch==0.6.0
+scipy==1.17.1
 
 # Plots and notebooks
 matplotlib==3.11.2

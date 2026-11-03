@@ -9,6 +9,19 @@ LOSS = 1
 IGNORE = 255  # excluded from training and metrics
 
 
+def forest_at_start(
+    lossyear: np.ndarray, treecover: np.ndarray, before: int, min_cover: int, nodata: int
+) -> np.ndarray:
+    """Pixels that were forest when the before year began, by the same rule as the labels.
+
+    Uses only Hansen data from before the period, so it can mask predictions without
+    revealing the answer. Loss in the before year itself still counts as forest at start.
+    """
+    already_lost = (lossyear > 0) & (lossyear < before - 2000)
+    missing = (lossyear == nodata) | (treecover == nodata)
+    return (treecover >= min_cover) & ~already_lost & ~missing
+
+
 def derive_label(
     lossyear: np.ndarray, treecover: np.ndarray, before: int, after: int, min_cover: int, nodata: int
 ) -> np.ndarray:

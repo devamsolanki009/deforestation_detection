@@ -3,8 +3,8 @@
 Detects forest loss between a "before" and an "after" year from Sentinel-2 (optical) and
 Sentinel-1 (radar) imagery, and outputs a loss mask plus estimated hectares lost.
 
-Status: Phase 1 (data) is complete for the full region: 1,806 patches with geographic splits.
-No models have been trained yet.
+Status: Phases 0 to 3 are complete. A baseline U-Net is trained and evaluated on a held-out
+test region; see `outputs/runs/unet_resnet34_baseline/evaluation/metrics.json`.
 
 ## Project layout
 
@@ -78,6 +78,20 @@ python -m scripts.view_patches --area subset     # sample figure in outputs/phas
 ```
 
 Labels are built locally from the raw Hansen bands, so changing a label rule needs no new export.
+
+## Training and evaluation
+
+```powershell
+python -m scripts.train --train-config configs\train\unet_resnet34.yaml
+python -m scripts.evaluate --run unet_resnet34_baseline         # tunes on val, scores test
+python -m scripts.plot_evaluation --run unet_resnet34_baseline  # overlays and failure gallery
+python -m scripts.diagnose_errors --run unet_resnet34_baseline --split val
+```
+
+Evaluation compares two post-processing pipelines, each tuned on val: with and without a
+forest mask that keeps detections only where Hansen shows forest when the before year began.
+The pipeline with the better val F1 becomes the primary one. Results go to
+`outputs/runs/<run>/evaluation/`.
 
 ## Configuration
 
