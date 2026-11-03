@@ -1,0 +1,32 @@
+# Phase 2 baseline: early fusion, both dates stacked as 24 channels into one U-Net.
+# Used together with configs/default.yaml, which sets the data and paths.
+
+run_name: unet_resnet34_baseline
+area: full  # patch set under data/patches
+
+model:
+  arch: unet
+  encoder: resnet34
+  encoder_weights: imagenet  # pretrained; null trains from scratch
+
+data:
+  batch_size: 8
+  num_workers: 4
+  # Patches whose labeled pixels are at least this share loss count as loss patches.
+  # Most train patches hold a few loss pixels, so "any loss" would select almost all of them.
+  oversample_min_loss_fraction: 0.01
+  oversample_weight: 2.5  # about half of each epoch's draws are loss patches
+
+optim:
+  epochs: 40
+  lr: 0.0003
+  weight_decay: 0.0001
+  early_stopping_patience: 10  # epochs without a better val F1 before stopping
+
+loss:
+  dice_weight: 1.0
+  focal_weight: 1.0
+
+amp: true
+threshold: 0.5  # tuned on val in Phase 3
+seed: 42

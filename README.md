@@ -3,8 +3,8 @@
 Detects forest loss between a "before" and an "after" year from Sentinel-2 (optical) and
 Sentinel-1 (radar) imagery, and outputs a loss mask plus estimated hectares lost.
 
-Status: Phase 1 (data). The pipeline has run on a test quarter of the region. No models have
-been trained yet.
+Status: Phase 1 (data) is complete for the full region: 1,806 patches with geographic splits.
+No models have been trained yet.
 
 ## Project layout
 
@@ -63,8 +63,12 @@ real quota, so `subset` and `full` need `--confirm`, and a matching task blocks 
 python -m scripts.check_s1_coverage              # Sentinel-1 images per pixel
 python -m scripts.report_labels                  # loss pixels kept or dropped by each label rule
 python -m scripts.export_stack --area probe      # small export that measures EECU usage
-python -m scripts.export_stack --area subset --confirm --wait
+python -m scripts.export_stack --area subset --confirm --wait   # NE quarter
+python -m scripts.export_stack --area nw --confirm --wait       # likewise sw and se
 ```
+
+The `full` area is built from the four quarter exports (`subset` is the NE quarter), so
+`make_patches --area full` and `view_patches --area full` need all four downloaded.
 
 Download the exported `.tif` files from Google Drive into `data/raw/`, then run:
 
